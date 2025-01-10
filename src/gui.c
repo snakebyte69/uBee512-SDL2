@@ -1,158 +1,3 @@
-//******************************************************************************
-//*                                  uBee512                                   *
-//*       An emulator for the Microbee Z80 ROM, FDD and HDD based models       *
-//*                                                                            *
-//*                                 GUI module                                 *
-//*                                                                            *
-//*                       Copyright (C) 2007-2016 uBee                         *
-//******************************************************************************
-//
-// Provides the graphical interface.
-//
-//==============================================================================
-/*
- *  uBee512 - An emulator for the Microbee Z80 ROM, FDD and HDD based models.
- *  Copyright (C) 2007-2016 uBee   
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
-//==============================================================================
-// ChangeLog (most recent entries are at top)
-//==============================================================================
-// v5.5.0 - 21 June 2013, B.Robinson
-// - Updated title bar to show debug mode - running, tracing, stopped etc...
-//
-// v5.3.0 - 2 April 2011, uBee
-// - Added tapfile to GUI tape updates as OR values with the tape status.
-//
-// v5.0.0 - 13 July 2010, K Duckmanton
-// - Removed all references to the 'sound' global variable and replaced them
-//   with references to the 'audio' global instead.
-//
-// v4.7.0 - 17 June 2010, uBee
-// - When using SDL-1.2.14 and the mouse cursor is disabled in full screen
-//   mode it causes spurious mouse motion events.  This is evident under
-//   win32 with the cursor reappearing at the center of display before it
-//   times out for a second time.  The fix will be used for all SDL versions
-//   and has fixed some other problems too, one being starting up in full
-//   screen mode now has the cursor disabled.  Changes were made to the
-//   gui_mousemotion_event() and gui_update() functions.
-// - Fixed mouse_cursor_time variable, was int is now uint64_t. (workerbee)
-//
-// v4.6.0 - 21 April 2010, uBee
-// - Added gui_proc_status_args() function to process --status arguments.
-//
-// v4.2.0 - 19 July 2009, uBee
-// - Added Microbee mouse emulated status 'm'.
-// - Changed middle mouse button to switch Microbee mouse mode on.
-//
-// v4.0.0 - 7 June 2009, uBee
-// - Added gui_changed_videostate() function which is called when toggling
-//   between full and window screens. (see notes in function)
-// - Double left button mouse click no longer toggles full screen mode when
-//   the OSD has the focus.
-//
-// v3.1.0 - 17 March 2009, uBee
-// - Fixed gui_status_update() for printer status by changing
-//   gui_status.tape to gui_status.print
-// - Added code to hide the mouse cursor in full screen mode if not moved
-//   for a period of time.  Made visible whenever the mouse is moved.
-// - Changed middle and right mouse down buttons to call osd_set_dialogue()
-//   function that provides a menu of different options including reset and
-//   exit sub dialogues.
-// - Added gui_mousemotion_event() handler function.
-// - Moved mouse button state variables into gui_t structure.
-// - Removed gui_ask_exit_emulator() and gui_ask_reset_emulator() functions.
-// - Removed mbox() code, gui_message_box() is only called in Windows when
-//   output has gone to a console and needs to be read before exiting.
-// - Reset and Exit confirmation messages now use the osd_set_dialogue() On
-//   Screen Display (OSD) function and no longer needs to switch screen size.
-// - Changed function_*() functions to keyb_*() as code was moved.
-// - Changed Window size status to only show if using OpenGL video mode.
-// - Added OpenGL conditional code compilation using USE_OPENGL.
-//
-// v3.0.0 - 13 October 2008, uBee
-// - Changes to gui_message_box() to test is full screen mode is active.
-// - Simplified the timer by introducing a time_get_ms() function.
-// - Added GUI_MOUSE_WHEEL_WIN scroll wheel functions.
-// - Increased status array from 200 to 300 now that OpenGL can make maximize.
-// - Removed code directly associated with video and created a new video.c
-//   module containing modified code.
-//
-// v2.8.0 - 2 Sepetember 2008, uBee
-// - Added SDL_BUTTON_WHEELUP and SDL_BUTTON_WHEELDOWN events.
-// - Added display of '[DEBUG]' to status line when emulator is debugging.
-// - Added volume level display persist to GUI status line.
-// - Improved GUI status line code so new persist values can be easily added
-//   and changed persist timers to use system clock.
-// - Added display of '[PAUSED]' to status line when emulator is in the
-//   paused state.
-// - SDL video rendering has seen some major changes, SW and HW surfaces are
-//   now supported along with 8, 16 or 32 bits per pixel modes.
-// - Added 'default : b = MB_OKCANCEL' to gui_message_box() function to
-//   eliminate a compiler warning of b not assigned.
-//
-// v2.7.0 - 20 June 2008, uBee
-// - Doubled the default VIDHEIGHT value from 275 to 550.
-// - Added sound mute status 'M' when in muted state.
-// - Added gui_update() GUI function to handle all GUI updates. The
-//   crtc.blitted flag greatly reduces the host CPU time and may improve
-//   sound quality.
-// - Added structure emu_t and moved variables into it.
-// - Added SDL_FreeSurface(screen) before creating a new surface in
-// - gui_videochange() is now gui_create_surface() and added a
-//   SDL_FreeSurface() call before creating a new surface.
-//
-// v2.6.0 - 12 May 2008, uBee
-// - Status line is now configurable with many new properties.
-// - Left mouse button now requires a double click to toggle full screen mode.
-// - Grab mode if used is disabled before showing any windows then restored.
-//
-// v2.4.0 - 19 February 2008, uBee
-// - Added a status line functions for the title bar.
-// - Implement the modelx information structure.
-//
-// v2.2.0 - 30 November 2007, uBee
-// - Mouse button click causing mbox to be brought up and a button is then
-//   pressed/released caused unwanted action.  Now records the down button
-//   state to be tested on release.
-//
-// v2.1.0 - 29 October 2007, uBee
-// - Added gui_mousebuttondown_event() and gui_mousebuttonup_event() functions.
-//   Left mouse button click toggles fullscreen mode.  Middle button is reset,
-//   and right button for exit.
-// - Added gui_ask_exit_emulator() and gui_ask_reset_emulator() functions.
-//
-// v2.0.0 - 10 October 2007, uBee
-// - Added message box for Unices builds.
-// - Fullscreen switched to a window if message box is displayed then switches
-//   back to fullsceen.
-//
-// v1.4.0 - 29 September 2007, uBee
-// - Changes to Y scaling to achieve better aspect ratio.
-// - Added changes to error reporting.
-//
-// v1.0.0 - 21 June 2007, uBee
-// - Added fullscreen toggle mode (ALT+ENTER), special code for win32 is used.
-// - Added screen resizing capabilities.
-//
-// v0.0.0 - 5 June 2007, uBee
-// Start with "nanowasp" source distribution version 0.22. An emulator for the
-// microbee 128k. Copyright (C) 2000-2003  David G. Churchill.
-//==============================================================================
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -233,7 +78,6 @@ extern serial_t serial;
 extern audio_t audio;
 extern printer_t printer;
 extern video_t video;
-extern mouse_t mouse;
 
 //==============================================================================
 // GUI initialise.
@@ -746,7 +590,7 @@ void gui_mousebuttonup_event (void)
         break;
      case SDL_BUTTON_WHEELDOWN :
         gui.button_wd = 0;
-        switch (gui.mouse_wheel)
+        switch ( gui.mouse_wheel)
            {
             case GUI_MOUSE_WHEEL_NONE :
                break;

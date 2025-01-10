@@ -1,42 +1,3 @@
-//******************************************************************************
-//*                                  uBee512                                   *
-//*       An emulator for the Microbee Z80 ROM, FDD and HDD based models       *
-//*                       Copyright (C) 2007-2016 uBee                         *
-//*                                                                            *
-//*                             Compumuse module                               *
-//*                   Copyright (C) 2011 Kalvis Duckmanton                     *
-//*                                                                            *
-//******************************************************************************
-//
-// This module emulates the EA Compumuse, described in the August, 1983
-// issue.  This device is based on the TI 76489 sound synthesiser IC.
-//
-//==============================================================================
-/*
- *  uBee512 - An emulator for the Microbee Z80 ROM, FDD and HDD based models.
- *  Copyright (C) 2007-2016 uBee   
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-//==============================================================================
-// ChangeLog (most recent entries are at top)
-//==============================================================================
-// v5.2.0 - 5 February 2011, K Duckmanton
-// - Initial implementation
-//==============================================================================
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -44,7 +5,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <SDL2/SDL.h>
-#include <SDL_thread.h>
+#include <SDL2/SDL_thread.h>
 
 #include "ubee512.h"
 #include "audio.h"
