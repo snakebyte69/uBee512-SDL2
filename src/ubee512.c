@@ -163,8 +163,8 @@
 //   when using win32 before being processed by getopts_long().
 // - Simplified the timer and delay processes by introducing a time_get_ms()
 //   and time_delay_ms() functions.
-// - Added SDL_WINDOWEVENT_EXPOSED event to redraw display when using OpenGL.
-// - Added SDL_WINDOWEVENT_RESIZED event for OpenGL texture mode resizing.
+// - Added SDL_VIDEOEXPOSE event to redraw display when using OpenGL.
+// - Added SDL_VIDEORESIZE event for OpenGL texture mode resizing.
 // - Added video_update() function as now have a video.c module.
 // - Changed version checking to skip a new version install if a later version
 //   ID string is found. This allows older version binaries to run without
@@ -403,7 +403,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #ifdef USE_LIBDSK
 #include <libdsk.h>
@@ -1188,13 +1188,14 @@ static int create_account (void)
 //   pass: void
 // return: int                          0 if no errors, else -1
 //==============================================================================
+static int icon_init (void)
 {
 #define ICON_PIXELS 128
 #define ICON_TRAN 0xffffff
 
  SDL_Surface *icon;
  uint8_t *pixel_data;
- 
+ uint8_t icon_mask[ICON_PIXELS * ICON_PIXELS / 8];
 
  int pixel_count;
  int pixel_bytes;
@@ -1244,24 +1245,7 @@ static int create_account (void)
              mask = 0;
             }
         }
-     
-    // SDL 2.x replacement for SDL_WM_SetIcon
-    
-    SDL_Window *window = SDL_CreateWindow(
-        "uBee512",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        800,
-        600,
-        SDL_WINDOW_OPENGL
-    );
-    if (!window) {
-        fprintf(stderr, "Error creating window: %s\n", SDL_GetError());
-        exit(1);
-    }
-    SDL_SetWindowIcon(window, icon);
-    
-    
+     SDL_WM_SetIcon(icon, icon_mask);
      SDL_FreeSurface(icon);
 
 #if 0
@@ -1375,7 +1359,7 @@ static int init (void)
  else
     {
      SDL_EventState(
-        SDL_WINDOWEVENT | SDL_SYSWMEVENT | SDL_QUIT |
+        SDL_ACTIVEEVENT | SDL_SYSWMEVENT | SDL_QUIT |
         SDL_KEYUP | SDL_KEYDOWN |
         SDL_MOUSEBUTTONDOWN | SDL_MOUSEBUTTONUP |
         SDL_JOYAXISMOTION | SDL_JOYBALLMOTION | SDL_JOYHATMOTION | SDL_JOYBUTTONUP | SDL_JOYBUTTONDOWN,
@@ -1662,7 +1646,7 @@ void event_handler (void)
             break;
 
 #ifdef USE_OPENGL
-         case SDL_WINDOWEVENT_EXPOSED:
+         case SDL_VIDEOEXPOSE:
             if (video.type >= VIDEO_GL)
                {
                 crtc_redraw();
@@ -1671,7 +1655,7 @@ void event_handler (void)
                 video_render();
                }
             break;
-         case SDL_WINDOWEVENT_RESIZED:
+         case SDL_VIDEORESIZE:
             video_gl_resize_event();
          break;
 #endif
@@ -2114,18 +2098,7 @@ int main (int argc, char *argv[])
 #endif
 
  // obtain the SDL version number for use in other modules
- sdlv = 
-    // SDL 2.x replacement for SDL_Linked_Version
-        SDL_version version;
-        SDL_GetVersion(&version);
-        printf("SDL Version: %d.%d.%d\n", version.major, version.minor, version.patch);
-
-        const SDL_version *sdlv = SDL_Linked_Version();
-        printf("SDL Linked Version: %d.%d.%d\n", sdlv->major, sdlv->minor, sdlv->patch);
-
-        return 0;
-    }
-    
+ sdlv = SDL_Linked_Version();
  emu.sdl_version = sdlv->major * 1000000 + sdlv->minor * 10000 + sdlv->patch;
 
  // Fix for the LOCK_KEYs toggle bug on SDL versions prior to 1.2.14.  This
@@ -2134,7 +2107,7 @@ int main (int argc, char *argv[])
  // "1"=uses both "2" and "3", "2"=CapsLock, "3"=NumLock).  An --sdl-putenv
  // option allows this to be disabled or modified if required.
  if (emu.sdl_version >= 1020014)
-    SDL_setenv("SDL_DISABLE_LOCK_KEYS", "1", 1);
+    SDL_putenv("SDL_DISABLE_LOCK_KEYS=1");
 
  // process command line and initilisation options
  if (! exitstatus)
@@ -2214,83 +2187,4 @@ int main (int argc, char *argv[])
     }
 
  return exitstatus;
-}
-    SDL_version version;
-    SDL_GetVersion(&version);
-    printf("SDL Version: %d.%d.%d\n", version.major, version.minor, version.patch);
-
-    const SDL_version *sdlv = SDL_Linked_Version();
-    printf("SDL Linked Version: %d.%d.%d\n", sdlv->major, sdlv->minor, sdlv->patch);
-
-    return 0;
-}
-int main(int argc, char *argv[]) {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-        fprintf(stderr, "Error initializing SDL: %s\n", SDL_GetError());
-        return -1;
-    }
-    atexit(SDL_Quit); // Ensure SDL quits properly on program exit
-
-    SDL_Window *window = SDL_CreateWindow(
-        "uBee512 Emulator",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        800,  // Width
-        600,  // Height
-        SDL_WINDOW_OPENGL
-    );
-    if (!window) {
-        fprintf(stderr, "Error creating SDL window: %s\n", SDL_GetError());
-        return -1;
-    }
-
-    SDL_Surface *icon = SDL_LoadBMP("icon.bmp"); // Load a BMP as an example
-    if (icon) {
-        icon_init(window, icon);
-        SDL_FreeSurface(icon); // Free the surface after setting it
-    }
-
-    SDL_version version;
-    SDL_GetVersion(&version);
-    printf("SDL Version: %d.%d.%d\n", version.major, version.minor, version.patch);
-
-    SDL_Delay(3000); // Display the window for 3 seconds (for demonstration)
-
-    SDL_DestroyWindow(window);
-    return 0;
-}
-int main(int argc, char *argv[]) {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-        fprintf(stderr, "Error initializing SDL: %s\n", SDL_GetError());
-        return -1;
-    }
-    atexit(SDL_Quit); // Ensure SDL quits properly on program exit
-
-    SDL_Window *window = SDL_CreateWindow(
-        "uBee512 Emulator",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        800,  // Width
-        600,  // Height
-        SDL_WINDOW_OPENGL
-    );
-    if (!window) {
-        fprintf(stderr, "Error creating SDL window: %s\n", SDL_GetError());
-        return -1;
-    }
-
-    SDL_Surface *icon = SDL_LoadBMP("icon.bmp"); // Load a BMP as an example
-    if (icon) {
-        SDL_SetWindowIcon(window, icon);
-        SDL_FreeSurface(icon); // Free the surface after setting it
-    }
-
-    SDL_version version;
-    SDL_GetVersion(&version);
-    printf("SDL Version: %d.%d.%d\n", version.major, version.minor, version.patch);
-
-    SDL_Delay(3000); // Display the window for 3 seconds (for demonstration)
-
-    SDL_DestroyWindow(window);
-    return 0;
 }
