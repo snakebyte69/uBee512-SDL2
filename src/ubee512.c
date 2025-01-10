@@ -403,7 +403,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #ifdef USE_LIBDSK
 #include <libdsk.h>
