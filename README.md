@@ -1,4 +1,4 @@
-# uBee512
+# uBee512-SDL2
 An emulator for the Microbee Z80 ROM, FDD and HDD based models. 
 Working towards a unified makefile for Windows, macOS and Linux. 
 For more information and build instructions for Windows, macOS and Linux; see the Microbee Programmers Discord https://discord.gg/hSsTfsA6gy
